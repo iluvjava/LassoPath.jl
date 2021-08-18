@@ -4,7 +4,7 @@ using Test
 
 # A set of basic tests for Lasso. 
 @testset "LassoPath.jl" begin
-    @test Lasso.PrintTitle("Test Set 1") === nothing
+    Lasso.PrintTitle("Test Set 1")
     
     
 end
