@@ -1,8 +1,10 @@
-using LassoPath
+import LassoPath as Lasso
 using Test
 
-@testset "LassoPath.jl" begin
-    # Write your tests here.
-    
 
+# A set of basic tests for Lasso. 
+@testset "LassoPath.jl" begin
+    @test Lasso.PrintTitle("Test Set 1") === nothing
+    
+    
 end

@@ -7,7 +7,7 @@ import Plots as Plots
 import ProgressMeter as Pm
 MOI = JuMP.MathOptInterface
 
-include("utils.jl")
+
 
 function MakeLassoOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
     """
@@ -80,7 +80,7 @@ mutable struct LassoSCOP
 end
 
 
-function LassoPath(this::LassoSCOP, tol::Float64=1e-8)
+function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
     """
         Analyze the Lasso Problem by drawing a lasso path. It will start with 
         a parameter that will make all predictors zero and then solve it 
