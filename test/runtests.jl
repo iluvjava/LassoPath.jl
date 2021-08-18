@@ -21,7 +21,7 @@ function Test1()
     display(results)
     display(λs)
     
-    # Let's plot this
+    # Let's plot this, and a global variable will be defined. 
     global Test1Results = results
 
     ylim = (minimum(Test1Results), maximum(Test1Results))
@@ -46,9 +46,35 @@ function Test1()
 end
 
 
+function Test2()
+
+    PrintTitle("Testing the Iterator for the Lasso Path type. ")
+    deg = 3
+    N = 2000
+    B = rand(N, deg)
+    A = fill(0.0, (N, 2deg))
+    A[:, 1:deg] = B
+    A[:, deg + 1:end] = 2B.^2 + B + 0.1.*randn(size(B))
+    
+    # Use this to test the lasso iterate. 
+    let A = A, b = A*ones(2deg, 1)
+        l = LassoSCOP(A, b )
+        for (λ, x) ∈ l
+            println(λ)
+            println(x)
+        end
+    end
+
+    return true
+end
+
+
 # A set of basic tests for Lasso. 
 @testset "LassoPath.jl" begin
     PrintTitle("Test Set 1")
     @test Test1()
+    @test Test2()
+        
+
     
 end

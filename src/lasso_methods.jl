@@ -6,91 +6,19 @@ import ProgressMeter as Pm
 MOI = JuMP.MathOptInterface
 
 
+function GetLassoPath(this::LassoSCOP)
+"""
+    Analyze the Lasso Problem by drawing a lasso path. It will start with 
+    a parameter that will make all predictors zero and then solve it 
+    iterative by chopping the regularization λ by half each iteration. 
 
-function MakeLassoOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
-    """
-        Phrase the quadratic programming problem for Lasso regularization 
-        problem. 
-        
-    """
-    m, n = size(A)
-    @assert size(y, 1) == m && size(y, 2) == 1 "the label and"* 
-    " the data matrix doesn't have the maching dimension X:" * 
-    string(m, "×",  n) * string(";y: ", size(y))
-    @assert λ ≤ 1 && λ ≥ 0 "Regularization λ should be between (0, 1)"
+    **this**: 
+        An instance of the LassoSCOP
+    **tol**: 
+        If the infinity norm of vector of the change in the weights is 
+        less than this quantity, then it stops and return all the results. 
 
-
-    Pb = Pm.ProgressUnknown("Building Optimization Model: ", spinner=true)
-
-    model = Model(with_optimizer(COSMO.Optimizer); bridge_constraints = false)
-
-    set_optimizer_attribute(model, MOI.Silent(), true)
-    set_optimizer_attribute(model, "max_iter", 5000*10)
-
-    @variable(model, x[1:n]); Pm.next!(Pb)
-    setvalue.(x, A\y); Pm.next!(Pb)
-    @variable(model, η[1:n]); Pm.next!(Pb)
-    @constraint(model, -η .<= x); Pm.next!(Pb)
-    @constraint(model, x .<= η); Pm.next!(Pb)
-    @objective(model, Min, λ*sum(η) + sum((A*x - y).^2)); Pm.finish!(Pb)
-
-    return model
-
-end
-
-
-mutable struct LassoSCOP
-    ## It's just a collection of data. 
-
-    A::Matrix # Feature matrix
-    y::Matrix # label vector 
-    μ::Matrix # feature mean
-    u::Number # label mean
-    Z::Matrix # Starndardized Matrix
-    l::Matrix # Zero mean label 
-    
-    OptModel::Model  # The JuMP model for getting it right. 
-    λ::Float64       # the regularization parameter. 
-
-    LassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
-    # the feature while varying the lambda quantity. 
-    λs::Union{Vector, Nothing} # the lambda values. 
-
-    function LassoSCOP(A::Matrix, y::Union{Matrix, Vector}, λ::Float64=0.0)
-        A = copy(A)
-        m, _ = size(A)
-        @assert size(y, 1) == m ""*
-        "The rows of X should match of the columns of y, but the size of"*
-        string("X, Y is: ", size(A), " ", size(y))
-        
-        y = copy(y)
-        if ndims(y) == 1
-            y = reshape(y, (length(y), 1))
-        end
-        μ = mean(A, dims=1)::Matrix
-        u = mean(y)
-        Z = A .- μ
-        l = y .- u
-        OptModel = MakeLassoOptimizationProblem(Z, l, λ)
-
-        return new(A, y, μ, u, Z, l, OptModel, λ)
-    end
-end
-
-
-function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
-    """
-        Analyze the Lasso Problem by drawing a lasso path. It will start with 
-        a parameter that will make all predictors zero and then solve it 
-        iterative by chopping the regularization λ by half each iteration. 
-
-        **this**: 
-            An instance of the LassoSCOP
-        **tol**: 
-            If the infinity norm of vector of the change in the weights is 
-            less than this quantity, then it stops and return all the results. 
-
-    """
+"""
 
     u = this.u
     A = this.Z
@@ -103,7 +31,6 @@ function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
         return maximum(abs.(ToMax))
     end
 
-
     λ = λMax(A, y)
     λs = Vector{Float64}()
     Changeλ(this, λ)
@@ -112,12 +39,12 @@ function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
     push!(Results, x)
     push!(λs, λ)
     MaxItr = 100
-    pb = Pm.ProgressThresh(tol, "inf norm of δx: ")
-    while dx >= tol && MaxItr >= 0
+    pb = Pm.ProgressThresh(this.Tol, "inf norm of δx: ")
+    while dx >= this.Tol && MaxItr >= 0
         push!(λs, λ)
         λ /= 2
         MaxItr -= 1
-        setvalue.(this.OptModel[:x], x) # warm start! 
+        setvalue.(this.OptModel[:x], x) # warm start!
         Changeλ(this, λ)
         x = SolveForx(this)
         push!(Results, value.(x))
@@ -148,7 +75,7 @@ function VisualizeLassoPath(
         
     """
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for the object"*
-    "yet". 
+    "yet, use GetLassoPath() function on it first". 
     error("Haven't implemented it yet.")
     λs = this.λs
     Paths = this.LassoPath
@@ -185,6 +112,7 @@ function CaptureImportantWeights(
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
+    
     @assert threshold >= 0 "This parameters shouold be a positive number"
 
     Paths = this.LassoPath
@@ -236,17 +164,43 @@ function SolveForx(this::LassoSCOP)
 end
 
 
-function Getαβ(this::LassoSCOP, lambda::Float64)
-    """
-        Get the weights and biases, for the original model 
-        (The model trained is normalized), 
-        for a particular regularization value. 
-    """
-    error("Not yet implemented. ")
-    
-end
-
 
 # TODO: Override Base.show for this LASSOPath TYPE.
 
+function Base.iterate(this::LassoSCOP)
+    """
+        Iterate through the parameters for the Lasso program: 
+            * λ
+            * solutions
+    """
+    u = this.u
+    A = this.Z
+    y = this.l
+    
+    function λMax(A, y)
+        ToMax = A'*(y .- u)
+        ToMax *= 2
+        return maximum(abs.(ToMax))
+    end
+    λ = λMax(A, y)
+    Changeλ(this, λ)
+    x = SolveForx(this)
+
+    return (x, λ), (x, λ)
+end
+
+function Base.iterate(this::LassoSCOP, state::Tuple{Vector{Float64}, Float64})
+    x, λ = state
+    λ /= 2
+    setvalue.(this.OptModel[:x], x)
+    Changeλ(this, λ)
+    y = SolveForx(this)
+    
+    if norm(x - y, Inf) <= this.Tol || λ <= this.λMin
+        return nothing
+    end
+
+    return (y, λ), (y, λ)
+
+end
 

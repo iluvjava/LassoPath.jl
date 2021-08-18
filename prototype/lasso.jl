@@ -40,6 +40,15 @@ function MakeLassoOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
 end
 
 
+function MakeQuantileOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
+    """
+        Phrase the Quantile regression problem into a Quadratic Programming 
+        problem
+
+    """
+end
+
+
 mutable struct LassoSCOP
     ## It's just a collection of data. 
 
@@ -180,12 +189,25 @@ function CaptureImportantWeights(
         ---
         **this::LassoSCOP**: 
             An instance of the type LassoSCOP
+
+        ---
+        **top_k::Union{Float64, Int64} = 0.5**
+            When it's in between 0, 1, it's specifying the portion of weights
+            that are non-zero, when it's not in in this range and it's positive,
+            then it's specifying the number of top weights, measured by the 
+            absolute value of the weights. 
+
+        ---
+        **threshold::Float64=1e-10**
+            Weigthts less than threshold is viewed as unimportant and it's 
+            discarded as zero. 
         
     """
     # TODO: test this 
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
+    top_k = min(top_k, size(this.LassoPath, 1))
     @assert threshold >= 0 "This parameters shouold be a positive number"
 
     Paths = this.LassoPath
@@ -251,8 +273,6 @@ end
 # TODO: Override Base.show for this LASSOPath TYPE.
 
 
-
-
 # TODO: Iterate, Use Base.Iterate, override it. 
 function Base.iterate(this::LassoSCOP)
     """
@@ -277,7 +297,7 @@ function Base.iterate(this::LassoSCOP)
 end
 
 function Base.Iterate(this::LassoSCOP, state::Int64)
-
+    
 end
 
 
