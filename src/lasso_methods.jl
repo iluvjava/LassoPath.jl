@@ -7,18 +7,18 @@ MOI = JuMP.MathOptInterface
 
 
 function GetLassoPath(this::LassoSCOP)
-"""
-    Analyze the Lasso Problem by drawing a lasso path. It will start with 
-    a parameter that will make all predictors zero and then solve it 
-    iterative by chopping the regularization λ by half each iteration. 
+    """
+        Analyze the Lasso Problem by drawing a lasso path. It will start with 
+        a parameter that will make all predictors zero and then solve it 
+        iterative by chopping the regularization λ by half each iteration. 
 
-    **this**: 
-        An instance of the LassoSCOP
-    **tol**: 
-        If the infinity norm of vector of the change in the weights is 
-        less than this quantity, then it stops and return all the results. 
+        **this**: 
+            An instance of the LassoSCOP
+        **tol**: 
+            If the infinity norm of vector of the change in the weights is 
+            less than this quantity, then it stops and return all the results. 
 
-"""
+    """
 
     u = this.u
     A = this.Z
@@ -108,7 +108,6 @@ function CaptureImportantWeights(
             An instance of the type LassoSCOP
         
     """
-    # TODO: test this 
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
