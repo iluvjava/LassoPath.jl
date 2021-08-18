@@ -1,0 +1,13 @@
+name = "LassoPath"
+uuid = "400a6aa6-2d62-4cbe-bdd1-3efc899ca7e3"
+authors = ["alto <victor1301166040@gmail.com> and contributors"]
+version = "1.0.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
