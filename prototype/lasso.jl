@@ -1,5 +1,3 @@
-
-
 using COSMO, JuMP, LinearAlgebra
 using Statistics
 using JuMP
@@ -8,6 +6,7 @@ import ProgressMeter as Pm
 MOI = JuMP.MathOptInterface
 
 include("utils.jl")
+
 
 function MakeLassoOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
     """
@@ -119,10 +118,10 @@ function LassoPath(this::LassoSCOP, tol::Float64=1e-8)
         push!(λs, λ)
         λ /= 2
         MaxItr -= 1
-        setvalue.(this.OptModel[:x], value.(x)) # warm start! 
+        setvalue.(this.OptModel[:x], x) # warm start! 
         Changeλ(this, λ)
         x = SolveForx(this)
-        push!(Results, value.(x))
+        push!(Results, x)
         dx = norm(Results[end - 1] - Results[end], Inf)
         Pm.update!(pb, dx)
     end
@@ -140,7 +139,8 @@ function LassoPath(this::LassoSCOP, tol::Float64=1e-8)
 end
 
 
-function VisualizeLassoPath(this::LassoSCOP, 
+function VisualizeLassoPath(
+                            this::LassoSCOP, 
                             fname::Union{String, Nothing}=nothing,
                             title::Union{String, Nothing}=nothing
                             )
@@ -217,7 +217,7 @@ function Changeλ(this::LassoSCOP, λ)
 end
 
 
-function SolveForx(this::LassoSCOP)
+function SolveForx(this::LassoSCOP)::Vector{Float64}
     """
         Solve for the weights of the current model, 
         given the current configuration of the model.
@@ -249,5 +249,35 @@ end
 
 
 # TODO: Override Base.show for this LASSOPath TYPE.
+
+
+
+
+# TODO: Iterate, Use Base.Iterate, override it. 
+function Base.iterate(this::LassoSCOP)
+    """
+        Iterate through the parameters for the Lasso program: 
+            * λ
+            * solutions
+    """
+    u = this.u
+    A = this.Z
+    y = this.l
+    
+    function λMax(A, y)
+        ToMax = A'*(y .- u)
+        ToMax *= 2
+        return maximum(abs.(ToMax))
+    end
+    λ = λMax(A, y)
+    x = SolveForx(this)
+    return λ, x
+
+
+end
+
+function Base.Iterate(this::LassoSCOP, state::Int64)
+
+end
 
 

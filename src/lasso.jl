@@ -1,5 +1,3 @@
-
-
 using COSMO, JuMP, LinearAlgebra
 using Statistics
 using JuMP
@@ -119,7 +117,7 @@ function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
         push!(λs, λ)
         λ /= 2
         MaxItr -= 1
-        setvalue.(this.OptModel[:x], value.(x)) # warm start! 
+        setvalue.(this.OptModel[:x], x) # warm start! 
         Changeλ(this, λ)
         x = SolveForx(this)
         push!(Results, value.(x))
@@ -140,7 +138,8 @@ function GetLassoPath(this::LassoSCOP, tol::Float64=1e-8)
 end
 
 
-function VisualizeLassoPath(this::LassoSCOP, 
+function VisualizeLassoPath(
+                            this::LassoSCOP, 
                             fname::Union{String, Nothing}=nothing,
                             title::Union{String, Nothing}=nothing
                             )
@@ -158,7 +157,7 @@ function VisualizeLassoPath(this::LassoSCOP,
         Paths[end:-1:begin, :], 
         title=title===nothing ? "Lasso Path" : title
         )
-    p2 = plot(Loggedλ, Paths', label=nothing)
+    p2 = Plots.plot(Loggedλ, Paths', label=nothing)
     Plots.xlabel!(p2, "log_2(λ)")
     p = Plots.plot(p1, p2, layout=(2, 1))
     Plots.plot!(size=(600, 800))

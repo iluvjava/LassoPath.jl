@@ -1,4 +1,5 @@
 module LassoPath
+    
     # Write your package code here.
     include("lasso.jl")
     include("utils.jl")
@@ -6,8 +7,9 @@ module LassoPath
     export vanderMonde, 
            PrintTitle, 
            Warn
+
     export LassoSCOP,
-           GetLassopath, 
+           GetLassoPath, 
            VisualizeLassoPath, 
            CaptureImportantWeights
     
