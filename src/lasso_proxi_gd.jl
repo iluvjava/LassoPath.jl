@@ -76,15 +76,23 @@ end
 
 function OptimizeProximalGradient(
         this::ProximalGradient, 
-        warmstart::Matrix
+        warmstart::Matrix, 
+        tol::Float64=1e-8
     )::Matrix
-
+    """
+        Implement FISTA, Accelerated Proximal Gradient. 
+    """
     x = warmstart
-    dx = Inf
-    # TODO: Implement this
-
-
+    Δx = Inf
+    y = x
+    t = 1
     
+    # TODO: Implement this
+    while Δx >= tol
+        
+    end
+
+    return x
 
 end
 

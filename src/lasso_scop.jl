@@ -47,7 +47,7 @@ end
 # ==============================================================================
 
 
-function Changeλ(this::LassoSCOP, λ)
+function Changeλ!(this::LassoSCOP, λ)
     """
         Change the Lasso regularizer of the current model, this mutates 
         the state of the object. 
@@ -98,7 +98,7 @@ function Base.iterate(this::LassoSCOP)
         return maximum(abs.(ToMax))
     end
     λ = λMax(A, y)
-    Changeλ(this, λ)
+    Changeλ!(this, λ)
     x = SolveForx(this)
 
     return (x, λ), (x, λ)
@@ -108,7 +108,7 @@ function Base.iterate(this::LassoSCOP, state::Tuple{Vector{Float64}, Float64})
     x, λ = state
     λ /= 2
     setvalue.(this.OptModel[:x], x)
-    Changeλ(this, λ)
+    Changeλ!(this, λ)
     y = SolveForx(this)
     
     if norm(x - y, Inf) <= this.Tol || λ <= this.λMin

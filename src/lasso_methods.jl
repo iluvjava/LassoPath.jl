@@ -34,7 +34,7 @@ function GetLassoPath(this::LassoRoot)
 
     λ = λMax(A, y)
     λs = Vector{Float64}()
-    Changeλ(this, λ)
+    Changeλ!(this, λ)
     x = SolveForx(this)
     dx = Inf
     push!(Results, x)
@@ -46,7 +46,7 @@ function GetLassoPath(this::LassoRoot)
         λ /= 2
         MaxItr -= 1
         setvalue.(this.OptModel[:x], x) # warm start!
-        Changeλ(this, λ)
+        Changeλ!(this, λ)
         x = SolveForx(this)
         push!(Results, value.(x))
         dx = norm(Results[end - 1] - Results[end], Inf)
@@ -67,10 +67,10 @@ end
 
 
 function VisualizeLassoPath(
-                            this::LassoRoot, 
-                            fname::Union{String, Nothing}=nothing,
-                            title::Union{String, Nothing}=nothing
-                            )
+        this::LassoRoot, 
+        fname::Union{String, Nothing}=nothing,
+        title::Union{String, Nothing}=nothing
+    )
     """
         Make a plots for the lasso path and save it in the pwd. 
         
@@ -96,10 +96,10 @@ end
 
 
 function CaptureImportantWeights(
-                                this::LassoRoot, 
-                                top_k::Union{Float64, Int64} = 0.5, 
-                                threshold::Float64=1e-10
-                                )
+        this::LassoRoot, 
+        top_k::Union{Float64, Int64} = 0.5, 
+        threshold::Float64=1e-10
+    )
     """
         Caputre the indices for the most important predictors from the 
         regression. Returns the indices of the important weights. 
@@ -142,6 +142,7 @@ function CaptureMonotoneWeights(this::LassoRoot)
         correlates to each other. 
     """
     # TODO: Implement his
+
 end
 
 
