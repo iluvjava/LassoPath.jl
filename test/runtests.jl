@@ -71,6 +71,19 @@ function Test2()
 end
 
 
+function Test3()
+    """
+        Test proximal Gradient
+    """
+    using LassoPath: ProximalGradient, 
+                     BuildProximalGradientLasso, 
+                     OptimizeProximalGradient
+    
+
+
+end
+
+
 # A set of basic tests for Lasso. 
 @testset "LassoPath.jl" begin
     PrintTitle("Test Set 1")

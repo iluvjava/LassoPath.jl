@@ -64,7 +64,7 @@ function BuildProximalGradientLasso(
     df(x) = A'*(A*x - b)
     
     # ======= build ==================================
-    proxVectorized(y) = L1LassoProximal(y, t, λ)
+    proxVectorized(y, t) = L1LassoProximal(y, t, λ)
     this = ProximalGradient()
     this.f = f
     this.gradient = df
@@ -77,19 +77,33 @@ end
 function OptimizeProximalGradient(
         this::ProximalGradient, 
         warmstart::Matrix, 
-        tol::Float64=1e-8
+        tol::Float64=1e-8, 
+        max_itr::Int64=1000
     )::Matrix
     """
-        Implement FISTA, Accelerated Proximal Gradient. 
+        Implement FISTA, Accelerated Proximal Gradient, copied from my HW. 
     """
     x = warmstart
     Δx = Inf
     y = x
     t = 1
-    
+    ∂f = this.gradient(y)
+    δ = 1/this.β
+
     # TODO: Implement this
-    while Δx >= tol
-        
+    while Δx >= tol && max_itr >= 0
+
+        xNew = this.prox(x - δ*∂f, δ)
+        tNew = (1 + sqrt(1 + 4t^2))/2
+        yNew = xNew + ((t - 1)/tNew)*(xNew - x)
+
+        ∂f = this.gradient(yNew)
+        Δx = norm(xNew - x, Inf)
+        t = tNew
+        x = xNew
+        y = yNew
+
+        max_itr -= 1
     end
 
     return x
