@@ -47,7 +47,9 @@ end
 
 
 function Test2()
-
+    """
+        Testing the iterator for the lasso path object. 
+    """
     PrintTitle("Testing the Iterator for the Lasso Path type. ")
     deg = 3
     N = 2000
@@ -74,7 +76,5 @@ end
     PrintTitle("Test Set 1")
     @test Test1()
     @test Test2()
-        
-
     
 end

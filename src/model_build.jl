@@ -1,3 +1,8 @@
+### ============================================================================
+### Build quadratic/linear programming problem using JuMP and various solvers. 
+### ============================================================================
+
+
 function MakeLassoOptimizationProblem(
     A::Matrix{Float64}, 
     y::Matrix{Float64}, 
@@ -37,7 +42,7 @@ end
 function MakeQuantileLassoOptimizationProblem(
         A::Matrix{Float64}, 
         y::Matrix{Float64}, 
-        λ::Float64=0, 
+        λ::Float64=0.0, 
         q::Float64=0.5,
     )
     """

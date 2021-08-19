@@ -45,7 +45,8 @@ end
 
 function Changeλ(this::LassoSCOP, λ)
     """
-        Change the Lasso regularizer of the current model 
+        Change the Lasso regularizer of the current model, this mutates 
+        the state of the object. 
     """
     model = this.OptModel
     x = model[:x]  # objects can be indexed with symbols! 
@@ -57,7 +58,7 @@ function Changeλ(this::LassoSCOP, λ)
 end
 
 
-function SolveForx(this::LassoSCOP)
+function SolveForx(this::LassoSCOP)::Vector{Float64}
     """
         Solve for the weights of the current model, 
         given the current configuration of the model.
