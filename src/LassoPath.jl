@@ -1,18 +1,25 @@
 module LassoPath
     
-    # Write your package code here.
-    
-    include("lasso_methods.jl")
-    include("utils.jl")
-    include("lasso_scop.jl")
-    include("model_build.jl")
+       using COSMO, JuMP, LinearAlgebra
+       using Statistics
+       import Plots as Plots
+       import ProgressMeter as Pm
+       MOI = JuMP.MathOptInterface
 
-    export vanderMonde, 
-           PrintTitle, 
-           Warn
+       # Write your package code here.
+       
+       # The order here matters
+       include("utils.jl")
+       include("model_build.jl")
+       include("lasso_scop.jl")
+       include("lasso_methods.jl")
 
-    export LassoSCOP,
-           GetLassoPath, 
+       export vanderMonde, 
+              PrintTitle, 
+              Warn
+
+       export LassoSCOP,
+           GetLassoPath,
            VisualizeLassoPath, 
            CaptureImportantWeights
     

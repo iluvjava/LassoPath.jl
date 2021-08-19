@@ -1,4 +1,8 @@
-function MakeLassoOptimizationProblem(A::Matrix, y::Matrix, λ::Float64)
+function MakeLassoOptimizationProblem(
+    A::Matrix{Float64}, 
+    y::Matrix{Float64}, 
+    λ::Float64
+    )
     """
         Phrase the quadratic programming problem for Lasso regularization 
         problem. 
@@ -31,8 +35,8 @@ end
 
 
 function MakeQuantileLassoOptimizationProblem(
-        A::Matrix, 
-        y::Matrix, 
+        A::Matrix{Float64}, 
+        y::Matrix{Float64}, 
         λ::Float64=0, 
         q::Float64=0.5,
     )
@@ -41,6 +45,12 @@ function MakeQuantileLassoOptimizationProblem(
         problem. 
         
     """
+    @assert size(A, 2)  == length(y) "The number of columns for matrix A"*
+    " should equals to the number of elements in vector b. "
+    @assert λ >= 0 "The L1 regularization parameter should be positive"
+    @assert q <= 1 && q >= 0 "The quantile parameter is not percentile"*
+    "It should be in between 0 and 1. "
+
     
 
 end

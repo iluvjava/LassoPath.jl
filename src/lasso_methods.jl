@@ -1,11 +1,8 @@
-using COSMO, JuMP, LinearAlgebra
-using Statistics
-using JuMP
-import Plots as Plots
-import ProgressMeter as Pm
-MOI = JuMP.MathOptInterface
-
-
+"""
+    Get the lassopath for the instance made, the function will modify the 
+    λs field, and the LassoPath field of the instance. 
+    
+"""
 function GetLassoPath(this::LassoSCOP)
     """
         Analyze the Lasso Problem by drawing a lasso path. It will start with 
@@ -106,23 +103,28 @@ function CaptureImportantWeights(
         ---
         **this::LassoSCOP**: 
             An instance of the type LassoSCOP
-        
+
+        ---
+        returns: 
+            * indices of the important predictors
+            * values of the regularization parameters
+            * the actual weigths
     """
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
-    
     @assert threshold >= 0 "This parameters shouold be a positive number"
 
     Paths = this.LassoPath
     top_k::Int64 = top_k <= 1 ? ceil(size(Paths, 1)*0.5) : round(top_k)
-    for JJ in size(Paths, 2)
+    for JJ in 1:size(Paths, 2)
         Col = view(Paths, :, JJ)
-        NonNegative = sum(abs.(Col) .>= threshold)
+        BigEnough = sum(abs.(Col) .>= threshold)
         # rank them by abs and returns the indices for top k weights
-        if NonNegative >= top_k 
+        if BigEnough >= top_k 
             Indices = sortperm(abs.(Col), rev=true)
-            return Indices[begin:top_k]
+            Indices = Indices[begin:top_k]
+            return Indices, this.λs[JJ], this.LassoPath[Indices, JJ]
         end
     end
     return Vector{Int64}()
