@@ -21,7 +21,7 @@ The most important parameters are the ones that still stays as the penalization 
 2. solve it with different parameters of lambda, with a warm start on the solver. 
 
 **Problem**:
-* This is going to be slow because the solver is single threaded, and not an interior points based method, it's a much general one, it's an ADMM based conic programming solver. An QP might be more better for Lasso type of problem. 
+* This is going to be slow because the solver is single threaded (COSMO supports multi-threading, but they claim it's not too stable), and it's not an interior points based method, it's a much general one, it's an ADMM based conic programming solver. An QP solver might be more better for Lasso type of problem. 
 
 * It's kinda redundant because it modifies the model for the solver each time. 
 
@@ -104,3 +104,8 @@ display([reshape(predictors, :) reshape(impacts, :)])
 ```
 
 Nice and easy code. 
+
+
+> Lasso is cool because by looking at the graph, one can deduce the covariance and colinearirity between the weights for the gression. 
+
+

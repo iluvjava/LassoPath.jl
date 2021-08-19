@@ -3,7 +3,7 @@
     λs field, and the LassoPath field of the instance. 
     
 """
-function GetLassoPath(this::LassoSCOP)
+function GetLassoPath(this::LassoRoot)
     """
         Analyze the Lasso Problem by drawing a lasso path. It will start with 
         a parameter that will make all predictors zero and then solve it 
@@ -63,7 +63,7 @@ end
 
 
 function VisualizeLassoPath(
-                            this::LassoSCOP, 
+                            this::LassoRoot, 
                             fname::Union{String, Nothing}=nothing,
                             title::Union{String, Nothing}=nothing
                             )
@@ -92,7 +92,7 @@ end
 
 
 function CaptureImportantWeights(
-                                this::LassoSCOP, 
+                                this::LassoRoot, 
                                 top_k::Union{Float64, Int64} = 0.5, 
                                 threshold::Float64=1e-10
                                 )
@@ -131,44 +131,19 @@ function CaptureImportantWeights(
 end
 
 
-function Changeλ(this::LassoSCOP, λ)
+function CaptureMonotoneWeights(this::LassoRoot)
     """
-        Change the Lasso regularizer of the current model 
+        Monotonically increasing weights (in absolute value) as the value of 
+        λ increases, are the weights that are not important, but also doesn't 
+        correlates to each other. 
     """
-    model = this.OptModel
-    x = model[:x]  # objects can be indexed with symbols! 
-    η = model[:η]
-    y = this.l
-    A = this.Z
-    @objective(model, Min, λ*sum(η) + sum((A*x - y).^2))
-    
-end
-
-
-function SolveForx(this::LassoSCOP)
-    """
-        Solve for the weights of the current model, 
-        given the current configuration of the model.
-    """
-    optimize!(this.OptModel)
-    TernimationStatus = termination_status(this.OptModel)
-    # @assert TernimationStatus == MOI.OPTIMAL "Terminated with non-optimal value when solving for x. "*
-    # string("The status is: ", TernimationStatus)*"\n this is the results \n $(OptResults)"
-    
-    if !(TernimationStatus == MOI.OPTIMAL)
-        Warn("\nWarning: convergence status for solver: $(TernimationStatus)")
-        Warn("Current Value λ: $(this.λ)")
-        PrintTitle("Here is the summary for the solution: ")
-        display(solution_summary(this.OptModel))
-    end
-    return value.(this.OptModel[:x])
+    # TODO: Implement his
 end
 
 
 
-# TODO: Override Base.show for this LASSOPath TYPE.
 
-function Base.iterate(this::LassoSCOP)
+function Base.iterate(this::LassoRoot)
     """
         Iterate through the parameters for the Lasso program: 
             * λ
@@ -190,7 +165,7 @@ function Base.iterate(this::LassoSCOP)
     return (x, λ), (x, λ)
 end
 
-function Base.iterate(this::LassoSCOP, state::Tuple{Vector{Float64}, Float64})
+function Base.iterate(this::LassoRoot, state::Tuple{Vector{Float64}, Float64})
     x, λ = state
     λ /= 2
     setvalue.(this.OptModel[:x], x)

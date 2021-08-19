@@ -1,5 +1,4 @@
-
-mutable struct LassoSCOP
+mutable struct LassoSCOP <: LassoRoot
     ## It's just a collection of data. 
 
     A::Matrix # Feature matrix
@@ -41,4 +40,38 @@ mutable struct LassoSCOP
         this.λMin = 1e-8
         return this
     end
+end
+
+
+function Changeλ(this::LassoSCOP, λ)
+    """
+        Change the Lasso regularizer of the current model 
+    """
+    model = this.OptModel
+    x = model[:x]  # objects can be indexed with symbols! 
+    η = model[:η]
+    y = this.l
+    A = this.Z
+    @objective(model, Min, λ*sum(η) + sum((A*x - y).^2))
+    
+end
+
+
+function SolveForx(this::LassoSCOP)
+    """
+        Solve for the weights of the current model, 
+        given the current configuration of the model.
+    """
+    optimize!(this.OptModel)
+    TernimationStatus = termination_status(this.OptModel)
+    # @assert TernimationStatus == MOI.OPTIMAL "Terminated with non-optimal value when solving for x. "*
+    # string("The status is: ", TernimationStatus)*"\n this is the results \n $(OptResults)"
+    
+    if !(TernimationStatus == MOI.OPTIMAL)
+        Warn("\nWarning: convergence status for solver: $(TernimationStatus)")
+        Warn("Current Value λ: $(this.λ)")
+        PrintTitle("Here is the summary for the solution: ")
+        display(solution_summary(this.OptModel))
+    end
+    return value.(this.OptModel[:x])
 end

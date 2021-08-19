@@ -10,8 +10,10 @@ module LassoPath
        
        # The order here matters
        include("utils.jl")
+       include("lasso_root.jl")
        include("model_build.jl")
        include("lasso_scop.jl")
+       
        include("lasso_methods.jl")
 
        export vanderMonde, 
