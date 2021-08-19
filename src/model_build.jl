@@ -4,9 +4,9 @@
 
 
 function MakeLassoOptimizationProblem(
-    A::Matrix{Float64}, 
-    y::Matrix{Float64}, 
-    λ::Float64
+        A::Matrix{Float64}, 
+        y::Matrix{Float64}, 
+        λ::Float64
     )
     """
         Phrase the quadratic programming problem for Lasso regularization 

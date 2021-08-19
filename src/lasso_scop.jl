@@ -42,6 +42,10 @@ mutable struct LassoSCOP <: LassoRoot
     end
 end
 
+# ==============================================================================
+# Type specific functions
+# ==============================================================================
+
 
 function Changeλ(this::LassoSCOP, λ)
     """
@@ -75,4 +79,42 @@ function SolveForx(this::LassoSCOP)::Vector{Float64}
         display(solution_summary(this.OptModel))
     end
     return value.(this.OptModel[:x])
+end
+
+
+function Base.iterate(this::LassoSCOP)
+    """
+        Iterate through the parameters for the Lasso program: 
+            * λ
+            * solutions
+    """
+    u = this.u
+    A = this.Z
+    y = this.l
+    
+    function λMax(A, y)
+        ToMax = A'*(y .- u)
+        ToMax *= 2
+        return maximum(abs.(ToMax))
+    end
+    λ = λMax(A, y)
+    Changeλ(this, λ)
+    x = SolveForx(this)
+
+    return (x, λ), (x, λ)
+end
+
+function Base.iterate(this::LassoSCOP, state::Tuple{Vector{Float64}, Float64})
+    x, λ = state
+    λ /= 2
+    setvalue.(this.OptModel[:x], x)
+    Changeλ(this, λ)
+    y = SolveForx(this)
+    
+    if norm(x - y, Inf) <= this.Tol || λ <= this.λMin
+        return nothing
+    end
+
+    return (y, λ), (y, λ)
+
 end

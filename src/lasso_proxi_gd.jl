@@ -1,4 +1,6 @@
-### Computing Lasso regression using the Proximal Gradient method. 
+### ============================================================================
+### A type related to Proximal Gradient and Lasso
+### ============================================================================
 
 mutable struct ProximalGradient
     """
@@ -16,6 +18,7 @@ mutable struct ProximalGradient
     end
 
 end
+
 
 function L1LassoProximal(y::Vector, t::Float64, λ::Float64)
     """
@@ -81,8 +84,16 @@ function OptimizeProximalGradient(
     # TODO: Implement this
 
 
+    
+
 end
 
+
+### ----------------------------------------------------------------------------
+
+### ============================================================================
+### A type related to doing lass, using the proximal gradient method
+### ============================================================================
 
 
 mutable struct LassoProximal <: LassoRoot

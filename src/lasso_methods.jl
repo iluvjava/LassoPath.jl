@@ -1,3 +1,7 @@
+### ============================================================================
+### Method related to lasso path associated with type `LassoRoot`
+### ============================================================================
+
 """
     Get the lassopath for the instance made, the function will modify the 
     λs field, and the LassoPath field of the instance. 
@@ -143,40 +147,5 @@ end
 
 
 
-function Base.iterate(this::LassoRoot)
-    """
-        Iterate through the parameters for the Lasso program: 
-            * λ
-            * solutions
-    """
-    u = this.u
-    A = this.Z
-    y = this.l
-    
-    function λMax(A, y)
-        ToMax = A'*(y .- u)
-        ToMax *= 2
-        return maximum(abs.(ToMax))
-    end
-    λ = λMax(A, y)
-    Changeλ(this, λ)
-    x = SolveForx(this)
 
-    return (x, λ), (x, λ)
-end
-
-function Base.iterate(this::LassoRoot, state::Tuple{Vector{Float64}, Float64})
-    x, λ = state
-    λ /= 2
-    setvalue.(this.OptModel[:x], x)
-    Changeλ(this, λ)
-    y = SolveForx(this)
-    
-    if norm(x - y, Inf) <= this.Tol || λ <= this.λMin
-        return nothing
-    end
-
-    return (y, λ), (y, λ)
-
-end
 
