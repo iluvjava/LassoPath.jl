@@ -66,7 +66,7 @@ end
 
 
 function VisualizeLassoPath(
-        this::LassoRoot, 
+        this::LassoRoot;
         fname::Union{String, Nothing}=nothing,
         title::Union{String, Nothing}=nothing
     )

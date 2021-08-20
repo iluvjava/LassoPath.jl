@@ -20,11 +20,12 @@ module LassoPath
               PrintTitle, 
               Warn
 
-       export LassoSCOP,
+       export LassoRoot, 
+              LassoSCOP,
               LassoProximal,
-           GetLassoPath,
-           VisualizeLassoPath, 
-           CaptureImportantWeights
+              GetLassoPath,
+              VisualizeLassoPath, 
+              CaptureImportantWeights
 
        
        # For testing internal metods

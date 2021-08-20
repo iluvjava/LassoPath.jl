@@ -50,8 +50,8 @@ function BuildProximalGradientLasso(
         A::Matrix, 
         b::Matrix, 
         λ::Float64, 
-        tol::Float64=1e-4, 
-        max_itr::Int64=5000
+        tol::Float64=1e-5,
+        max_itr::Int64=1000
     )::ProximalGradient
     """
         Given matrix A, vector b, and λ the regularization perameter, 
@@ -129,7 +129,12 @@ function OptimizeProximalGradient(
         max_itr -= 1
     end
     if max_itr == 0
-        Warn("Maximal iteration reached for Proximal gradient. ")
+        println()
+        Warn("Maximal iteration $(this.maxItr) reached for Proximal gradient. ")
+        @assert norm(x, Inf) != Inf "Solution is infinite, something blowed up."
+        Warn("It will be bumped up by 200% more and then we try again.")
+        this.maxItr = 2*this.maxItr
+        return OptimizeProximalGradient(this, warm_start)
     end
 
     return x
@@ -194,13 +199,10 @@ mutable struct LassoProximal <: LassoRoot
 end
 
 
-
-
 function Changeλ!(this::LassoProximal, λ::Float64)
     """
         Change the Lasso regularizer of the current model 
     """
-    # TODO: Implement this 
 
     ChangeProximalGradientLassoλ!(this.OptModel, λ)
     return 
@@ -215,8 +217,6 @@ function SolveLasso(
         Solve for the weights of the current model, 
         given the current configuration of the model.
     """
-
-    # TODO: Implement this 
 
     if !(x0 === nothing)
         x0 = reshape(x0, this.OptModel.solutionDim)
