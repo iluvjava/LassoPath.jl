@@ -140,6 +140,14 @@ function Test4()
     return true
 end
 
+function Test5()
+    """
+        Test High dimensional Array for the proximal gradient lasso method. 
+    """
+
+
+end
+
 
 # A set of basic tests for Lasso. 
 @testset "LassoPath.jl" begin

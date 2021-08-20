@@ -87,6 +87,9 @@ function BuildPG2NormLasso(
 end
 
 function ChangeProximalGradientLassoλ!(this::ProximalGradient, λ::Float64)
+    """
+        Change the proximal operator for a different λ
+    """
     this.prox = (y, t) -> L1LassoProximal!(y, t, λ)
 end
 
