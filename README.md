@@ -16,7 +16,7 @@ Change the value of the L1 regularization until the solution reaches zero, then 
 
 The most important parameters are the ones that still stays as the penalization gets bigger. 
 
-**Approach**: 
+**Approach: Conic Programming**: 
 1. Phrase the lasso problem as a quadratic programming problem
 2. solve it with different parameters of lambda, with a warm start on the solver. 
 
@@ -25,12 +25,18 @@ The most important parameters are the ones that still stays as the penalization 
 
 * It's kinda redundant because it modifies the model for the solver each time. 
 
+**Warning** 
+
+The `JuMP.jl` frame work is EXTREMELY slow if you have big data, please avoid at all cost. 
+
+For Lasso I implemented by self-made Proximal Accelerated Graidient (FISTA), and it 's about 500 times faster than the quadratic solver, with better numerical precision too. 
+
 ---
 ### **Usage Examples**
 
 The crime dataset is analyzed in the file [here](./usage_examples/crime_data/data_analyze.jl), where we created the lasso path plot: 
 
-![](./usage_examples/crime_data/plot.png)
+![](./usage_examples/crime_data/lasso_proximal.png) 
 
 and the top predictors for crime rate over a county are identified to be: 
 
@@ -70,6 +76,7 @@ The usage for the package is simple, and it's like:
 cd("C:\\Users\\victo\\source\\repos\\Silly_Julia_stuff\\Julia Packages\\LassoPath\\usage_examples\\crime_data")
 using DelimitedFiles, CSV, DataFrames
 using LassoPath
+using BenchmarkTools
 
 Df = CSV.read("process_data.csv", DataFrame)
 Df = Df[!, Not([:state, :fold])]
@@ -79,26 +86,26 @@ A, b = Matrix(Df[:, Not(end)]), Df[:, end]
 
 PrintTitle("The Data is ready, we are ready for analyais now")
 
-lassoIntance = LassoSCOP(A, b)
-
-GetLassoPath(lassoIntance)
-
-VisualizeLassoPath(lassoIntance)
-
-predictorIndices, λ, ws = CaptureImportantWeights(lassoIntance, 10, 1e-2)
-
-PrintTitle("Important Predictors are")
-
-predictors = names(Df[:, Not(end)])[predictorIndices]
-impacts = map(ws) do x
-    if x >= 0 
-        return "+"
-    else 
-        return "-"
+function ShowResults(constructor::Function, fname::String)
+    lassoIntance = constructor(A, b)
+    GetLassoPath(lassoIntance)
+    VisualizeLassoPath(lassoIntance, fname=fname)
+    predictorIndices, λ, ws = 
+        CaptureImportantWeights(lassoIntance, 10, 1e-2)
+    PrintTitle("Important Predictors are")
+    predictors = names(Df[:, Not(end)])[predictorIndices]
+    impacts = map(ws) do x
+        if x >= 0 
+            return "+"
+        else 
+            return "-"
+        end
     end
+    display([reshape(predictors, :) reshape(impacts, :)])
 end
 
-display([reshape(predictors, :) reshape(impacts, :)])
+# @time ShowResults((x, y) -> LassoSCOP(x, y), "Lasso SCOP.png")
+@time ShowResults((x, y) -> LassoProximal(x, y), "Lasso Proximal.png")
 
 
 ```

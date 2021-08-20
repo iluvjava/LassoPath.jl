@@ -31,4 +31,4 @@ function ShowResults(constructor::Function, fname::String)
 end
 
 # @time ShowResults((x, y) -> LassoSCOP(x, y), "Lasso SCOP.png")
-@time ShowResults((x, y) -> LassoProximal(x, y), "Lasso Proximal.png")
+@time ShowResults((x, y) -> LassoProximal(x, y), "lasso_proximal.png")
