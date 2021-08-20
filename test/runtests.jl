@@ -77,10 +77,10 @@ function Test3()
         Test proximal Gradient, internal methods
     """
     PrintTitle("Testing the proximal operator with simple regression. ")
-    N, M = 10, 1000
+    N, M = 10, 100
     A = randn(N, M)
     b = randn(N, 1)
-    instance = LassoPath.BuildProximalGradientLasso(A, b, 1/M)  
+    instance = LassoPath.BuildPG2NormLasso(A, b, 1/M)  
     instance.tol= 1e-4
 
     sol = LassoPath.OptimizeProximalGradient(instance, A\b)

@@ -46,7 +46,7 @@ function L1LassoProximal!(y::Union{Vector, Matrix}, t::Float64, λ::Float64)
 end
 
 
-function BuildProximalGradientLasso(
+function BuildPG2NormLasso(
         A::Matrix, 
         b::Matrix, 
         λ::Float64, 
@@ -67,10 +67,11 @@ function BuildProximalGradientLasso(
     @assert size(b, 1) == size(A, 1) "Expect the size of the matrix to match "*
     "the vector but it turns out to be A is in $(size(A)), and b is $(size(b))"
     ATA = A'*A
+    ATb = A'*b
     β = 4*opnorm(ATA)  # convexity from spectral norm. 
     t = 1/β
     f(x) = norm(A*x - b)^2
-    dg(x) = 2(ATA*x - A'*b)
+    dg(x) = 2(ATA*x - ATb)
     
     # ======= build ==================================
     proxVectorized(y, t) = L1LassoProximal!(y, t, λ)
@@ -92,7 +93,7 @@ end
 
 function OptimizeProximalGradient(
         this::ProximalGradient, 
-        warm_start::Union{Matrix, Nothing}=nothing
+        warm_start::Union{Array, Nothing}=nothing
     )::Matrix
     """
         Implement FISTA, Accelerated Proximal Gradient, copied from my HW. 
@@ -117,9 +118,10 @@ function OptimizeProximalGradient(
         xNew = x - δ*∇f
         this.prox(xNew, δ)
         tNew = (1 + sqrt(1 + 4t^2))/2
-        yNew = xNew + ((t - 1)/tNew)*(xNew - x)
+        yNew .= xNew
+        yNew += ((t - 1)/tNew)*(xNew - x)
 
-        ∇f = this.gradient(yNew)
+        ∇f .= this.gradient(yNew)
         Δx = norm(xNew - x, 1)/norm(x, 1)
     
         t = tNew
@@ -146,7 +148,8 @@ end
 ### ----------------------------------------------------------------------------
 
 ### ============================================================================
-### A type related to doing lass, using the proximal gradient method
+### A type related to doing lass, using the proximal gradient method for L2
+### regression 
 ### ============================================================================
 
 
@@ -173,7 +176,7 @@ mutable struct LassoProximal <: LassoRoot
 
     function LassoProximal(
             A::Matrix, 
-            y::Union{Matrix, Vector}, 
+            y::Array, 
             λ::Float64=0.0
         )
         A = copy(A)
@@ -190,7 +193,7 @@ mutable struct LassoProximal <: LassoRoot
         u = mean(y)
         Z = A .- μ
         l = y .- u
-        OptModel = BuildProximalGradientLasso(Z, l, λ)
+        OptModel = BuildPG2NormLasso(Z, l, λ)
         this = new(A, y, μ, u, Z, l, OptModel, λ)
         this.Tol = 1e-4
         this.λMin = 1e-8
