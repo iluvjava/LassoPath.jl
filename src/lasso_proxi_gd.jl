@@ -8,27 +8,35 @@ mutable struct ProximalGradient
         functions. 
     """
 
-    f::Function 
+    g::Function 
     gradient::Function
     prox::Function
+    h::Function
+    
     β::Float64  # For beta convex function. 
+    tol::Float64
+    maxItr::Int64 
+    solutionDim::Tuple
 
-    function ProximalGradient()
-        return new()
+    function ProximalGradient(tol::Float64, maxItr::Int64)
+        this = new()
+        this.tol = tol
+        this.maxItr = maxItr
+        return this
     end
 
 end
 
 
-function L1LassoProximal(y::Vector, t::Float64, λ::Float64)
+function L1LassoProximal!(y::Union{Vector, Matrix}, t::Float64, λ::Float64)
     """
         Textbook definition of the L1 Lasso proximal operator. 
     """
 
-    return map(y) do yi
-        if yi >= λ*t
+    return map!(y, y) do yi
+        if yi > λ*t
             return yi - λ*t
-        else if yi <= -λ*t
+        elseif yi < -λ*t
             return yi + λ*t
         else
             return 0
@@ -41,7 +49,9 @@ end
 function BuildProximalGradientLasso(
         A::Matrix, 
         b::Matrix, 
-        λ::Float64
+        λ::Float64, 
+        tol::Float64=1e-4, 
+        max_itr::Int64=5000
     )::ProximalGradient
     """
         Given matrix A, vector b, and λ the regularization perameter, 
@@ -51,64 +61,81 @@ function BuildProximalGradientLasso(
         * A factory methods
         ! Pass copy of matrices will be better. 
     """
-    # TODO: Test this 
 
-    @assert b.dims == 2 && length(b) == size(b, 1) "Expect vector b in the"*
+    @assert size(b, 2) == 1 "Expect vector b in the"*
     " shape of (n, 1) but it turns out to be $(size(b))"
-    @assert size(b, 1) == size(A, 2) "Expect the size of the matrix to match "*
+    @assert size(b, 1) == size(A, 1) "Expect the size of the matrix to match "*
     "the vector but it turns out to be A is in $(size(A)), and b is $(size(b))"
 
-    β = 4*opnorm(A)  # convexity from spectral norm. 
+    β = 8*opnorm(A'*A)  # convexity from spectral norm. 
     t = 1/β
     f(x) = norm(A*x - b)^2
-    df(x) = A'*(A*x - b)
+    dg(x) = 2A'*(A*x - b) 
     
     # ======= build ==================================
-    proxVectorized(y, t) = L1LassoProximal(y, t, λ)
-    this = ProximalGradient()
-    this.f = f
-    this.gradient = df
+    proxVectorized(y, t) = L1LassoProximal!(y, t, λ)
+    this = ProximalGradient(tol, max_itr)
+    this.g = f
+    this.gradient = dg
     this.prox = proxVectorized
     this.β = β
+    this.solutionDim = (size(A, 2), size(b, 2))
+    this.h = (x) -> norm(x, 1)
+
     return this
+end
+
+function ChangeProximalGradientLassoλ!(this::ProximalGradient, λ::Float64)
+    this.prox = (y, t) -> L1LassoProximal!(y, t, λ)
 end
 
 
 function OptimizeProximalGradient(
         this::ProximalGradient, 
-        warmstart::Matrix, 
-        tol::Float64=1e-8, 
-        max_itr::Int64=1000
+        warm_start::Union{Matrix, Nothing}=nothing
     )::Matrix
     """
         Implement FISTA, Accelerated Proximal Gradient, copied from my HW. 
     """
-    x = warmstart
+    tol = this.tol
+    max_itr = this.maxItr
+    
+    if warm_start === nothing
+        warm_start = zeros(this.solutionDim)
+    end
+
+    x  = warm_start
     Δx = Inf
-    y = x
-    t = 1
-    ∂f = this.gradient(y)
-    δ = 1/this.β
+    y  = x
+    t  = 1
+    ∇f = this.gradient(y)
+    δ  = 1/this.β # stepsize
+    xNew = similar(x)
+    yNew = similar(y)
 
-    # TODO: Implement this
-    while Δx >= tol && max_itr >= 0
-
-        xNew = this.prox(x - δ*∂f, δ)
+    while Δx >= tol && max_itr >= 1
+        xNew = x - δ*∇f
+        this.prox(xNew, δ)
         tNew = (1 + sqrt(1 + 4t^2))/2
         yNew = xNew + ((t - 1)/tNew)*(xNew - x)
 
-        ∂f = this.gradient(yNew)
-        Δx = norm(xNew - x, Inf)
+        ∇f = this.gradient(yNew)
+        Δx = norm(xNew - x, 1)/norm(x, 1)
+    
         t = tNew
         x = xNew
         y = yNew
-
+        
         max_itr -= 1
+    end
+    if max_itr == 0
+        Warn("Maximal iteration reached for Proximal gradient. ")
     end
 
     return x
 
 end
+
 
 
 ### ----------------------------------------------------------------------------
@@ -122,7 +149,7 @@ mutable struct LassoProximal <: LassoRoot
     ## It's just a collection of data. 
 
     A::Matrix # Feature matrix 
-    y::Matrix # label vector 
+    y::Matrix # label vector/matrix 
     μ::Matrix # feature mean
     u::Number # label mean
     Z::Matrix # Starndardized Matrix
@@ -139,14 +166,18 @@ mutable struct LassoProximal <: LassoRoot
     Tol::Float64
     λMin::Float64
 
-    function LassoLassoProximal(A::Matrix, y::Union{Matrix, Vector}, λ::Float64=0.0)
+    function LassoProximal(
+            A::Matrix, 
+            y::Union{Matrix, Vector}, 
+            λ::Float64=0.0
+        )
         A = copy(A)
         m, _ = size(A)
         @assert size(y, 1) == m ""*
         "The rows of X should match of the columns of y, but the size of"*
         string("X, Y is: ", size(A), " ", size(y))
-        
         y = copy(y)
+
         if ndims(y) == 1
             y = reshape(y, (length(y), 1))
         end
@@ -156,7 +187,7 @@ mutable struct LassoProximal <: LassoRoot
         l = y .- u
         OptModel = BuildProximalGradientLasso(Z, l, λ)
         this = new(A, y, μ, u, Z, l, OptModel, λ)
-        this.Tol = 1e-8
+        this.Tol = 1e-4
         this.λMin = 1e-8
         return this
     end
@@ -165,22 +196,33 @@ end
 
 
 
-function Changeλ(this::LassoProximal, λ::Float64)
+function Changeλ!(this::LassoProximal, λ::Float64)
     """
         Change the Lasso regularizer of the current model 
     """
     # TODO: Implement this 
-    
+
+    ChangeProximalGradientLassoλ!(this.OptModel, λ)
+    return 
 end
 
 
-function SolveForx(this::LassoProximal)
+function SolveLasso(
+            this::LassoProximal; 
+            x0::T=nothing
+        )::Vector{Float64} where {T <: Union{Vector{Float64}, Nothing}}
     """
         Solve for the weights of the current model, 
         given the current configuration of the model.
     """
 
     # TODO: Implement this 
+
+    if !(x0 === nothing)
+        x0 = reshape(x0, this.OptModel.solutionDim)
+    end
+
+    return reshape(OptimizeProximalGradient(this.OptModel, x0), :)
     
 end
 

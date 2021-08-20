@@ -11,7 +11,7 @@ A, b = Matrix(Df[:, Not(end)]), Df[:, end]
 
 PrintTitle("The Data is ready, we are ready for analyais now")
 
-lassoIntance = LassoSCOP(A, b)
+lassoIntance = LassoProximal(A, b)
 
 GetLassoPath(lassoIntance)
 

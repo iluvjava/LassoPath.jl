@@ -11,9 +11,9 @@ mutable struct LassoSCOP <: LassoRoot
     OptModel::Model  # The JuMP model for getting it right. 
     λ::Float64       # the regularization parameter. 
 
-    LassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
+    LassoPath::Matrix # going along a fixed row is the fixing 
     # the feature while varying the lambda quantity. 
-    λs::Union{Vector, Nothing} # the lambda values. 
+    λs::Vector # the lambda values. 
 
     # Paramters for the iterator
     Tol::Float64
@@ -36,7 +36,7 @@ mutable struct LassoSCOP <: LassoRoot
         l = y .- u
         OptModel = MakeLassoOptimizationProblem(Z, l, λ)
         this = new(A, y, μ, u, Z, l, OptModel, λ)
-        this.Tol = 1e-8
+        this.Tol = 1e-4
         this.λMin = 1e-8
         return this
     end
@@ -62,11 +62,17 @@ function Changeλ!(this::LassoSCOP, λ)
 end
 
 
-function SolveForx(this::LassoSCOP)::Vector{Float64}
+function SolveLasso(
+        this::LassoSCOP; 
+        x0::T=nothing
+    )::Vector{Float64} where {T <: Union{Vector{Float64}, Nothing}}
     """
         Solve for the weights of the current model, 
         given the current configuration of the model.
     """
+    if !(x0 === nothing)
+        setvalue.(this.OptModel[:x], x0) # warm start!
+    end
     optimize!(this.OptModel)
     TernimationStatus = termination_status(this.OptModel)
     # @assert TernimationStatus == MOI.OPTIMAL "Terminated with non-optimal value when solving for x. "*
@@ -99,7 +105,7 @@ function Base.iterate(this::LassoSCOP)
     end
     λ = λMax(A, y)
     Changeλ!(this, λ)
-    x = SolveForx(this)
+    x = SolveLasso(this)
 
     return (x, λ), (x, λ)
 end
@@ -109,7 +115,7 @@ function Base.iterate(this::LassoSCOP, state::Tuple{Vector{Float64}, Float64})
     λ /= 2
     setvalue.(this.OptModel[:x], x)
     Changeλ!(this, λ)
-    y = SolveForx(this)
+    y = SolveLasso(this)
     
     if norm(x - y, Inf) <= this.Tol || λ <= this.λMin
         return nothing

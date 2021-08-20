@@ -35,21 +35,20 @@ function GetLassoPath(this::LassoRoot)
     λ = λMax(A, y)
     λs = Vector{Float64}()
     Changeλ!(this, λ)
-    x = SolveForx(this)
+    x = SolveLasso(this)
     dx = Inf
     push!(Results, x)
     push!(λs, λ)
     MaxItr = 100
     pb = Pm.ProgressThresh(this.Tol, "inf norm of δx: ")
     while dx >= this.Tol && MaxItr >= 0
-        push!(λs, λ)
         λ /= 2
+        push!(λs, λ)
         MaxItr -= 1
-        setvalue.(this.OptModel[:x], x) # warm start!
         Changeλ!(this, λ)
-        x = SolveForx(this)
+        x = SolveLasso(this, x0=x)
         push!(Results, value.(x))
-        dx = norm(Results[end - 1] - Results[end], Inf)
+        dx = norm(Results[end - 1] - Results[end], 1)/norm(Results[end - 1], 1)
         Pm.update!(pb, dx)
     end
 
@@ -82,8 +81,8 @@ function VisualizeLassoPath(
     Paths = this.LassoPath
     Loggedλ = log2.(λs)
     p1 = Plots.heatmap(
-        Paths[end:-1:begin, :], 
-        title=title===nothing ? "Lasso Path" : title
+            Paths[end:-1:begin, :], 
+            title=title===nothing ? "Lasso Path" : title
         )
     p2 = Plots.plot(Loggedλ, Paths', label=nothing)
     Plots.xlabel!(p2, "log_2(λ)")
@@ -146,7 +145,13 @@ function CaptureMonotoneWeights(this::LassoRoot)
 end
 
 
-
+function RecoverModelWeights(this::LassoRoot)
+    """
+        Recovers the weights for the model, because the LassoRoot is regularized
+        only with normalized data. 
+    """
+    # TODO: Implement this 
+end
 
 
 
