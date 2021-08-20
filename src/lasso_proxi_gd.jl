@@ -66,11 +66,11 @@ function BuildProximalGradientLasso(
     " shape of (n, 1) but it turns out to be $(size(b))"
     @assert size(b, 1) == size(A, 1) "Expect the size of the matrix to match "*
     "the vector but it turns out to be A is in $(size(A)), and b is $(size(b))"
-
-    β = 8*opnorm(A'*A)  # convexity from spectral norm. 
+    ATA = A'*A
+    β = 4*opnorm(ATA)  # convexity from spectral norm. 
     t = 1/β
     f(x) = norm(A*x - b)^2
-    dg(x) = 2A'*(A*x - b) 
+    dg(x) = 2(ATA*x - A'*b)
     
     # ======= build ==================================
     proxVectorized(y, t) = L1LassoProximal!(y, t, λ)

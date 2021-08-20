@@ -81,6 +81,8 @@ function Test3()
     A = randn(N, M)
     b = randn(N, 1)
     instance = LassoPath.BuildProximalGradientLasso(A, b, 1/M)  
+    instance.tol= 1e-4
+
     sol = LassoPath.OptimizeProximalGradient(instance, A\b)
     error = norm(A*sol - b)
     println("The error of the solution is: $(error)")
@@ -109,7 +111,6 @@ function Test4()
 
     b = A*ones(2deg, 1)
     instance = LassoProximal(A, b)
-    
 
     results, λs = GetLassoPath(instance)
     display(results)
