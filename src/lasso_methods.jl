@@ -90,26 +90,39 @@ function VisualizeLassoPath(
     return
 end
 
+"""
+    Caputre the indices for the most important predictors from the 
+    regression. Returns the indices of the important weights. 
 
+    It decreases the λ geometrically and count the number of non-zero 
+    weigthts at for each λ. Once the number of non-zero weights reached 
+    the threshold (top_k), it will return the indices of these non-zero 
+    weights. 
+        
+    ---
+    `this::LassoRoot`: 
+        An instance of the Lasso Analyzer. 
+    
+    `top_k::Union{Float64, Int64}`:
+        The number of non-zero weights you want, if it's a float between 0, 1, then 
+        it's interpreted as the ratio of non-zero weights you want. 
+    
+    `threshold::Float64=1e-4`
+        Set a threshold for the weights that you deem to be "important", only 
+        weights larger than this threshold will be viiwed as "non-zero". 
+
+    ---
+    `returns`: 
+        * indices of the important predictors
+        * values of the regularization parameters
+        * the actual weigths
+"""
 function CaptureImportantWeights(
         this::LassoRoot, 
         top_k::Union{Float64, Int64} = 0.5, 
         threshold::Float64=1e-10
     )
-    """
-        Caputre the indices for the most important predictors from the 
-        regression. Returns the indices of the important weights. 
-        
-        ---
-        **this::LassoSCOP**: 
-            An instance of the type LassoSCOP
-
-        ---
-        returns: 
-            * indices of the important predictors
-            * values of the regularization parameters
-            * the actual weigths
-    """
+    
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
@@ -130,25 +143,32 @@ function CaptureImportantWeights(
     return Vector{Int64}()
 end
 
-
+"""
+    Find the weights that always monotinically increases as the value of 
+    λ decreases. 
+    
+    Monotone weights are likely to be independent and have less covariances 
+    with other predictors. 
+"""
 function CaptureMonotoneWeights(this::LassoRoot)
-    """
-        Monotonically increasing weights (in absolute value) as the value of 
-        λ increases, are the weights that are not important, but also doesn't 
-        correlates to each other. 
-    """
     # TODO: Implement his
+    
+end
+
+
+function WeightCorrelations(this::LassoRoot, index::Int64)
+    # TODO: implement this
+end
+
+
+function λSuchThatThisWeightIsZero(this::LassoRoot)
+    # TODO: implement this
 
 end
 
 
-function RecoverModelWeights(this::LassoRoot)
-    """
-        Recovers the weights for the model, because the LassoRoot is regularized
-        only with normalized data. 
-    """
-    # TODO: Implement this 
+function RankAllWeights(this::LassoRoot)
+    # TODO: Implement This    
+
 end
-
-
 

@@ -15,22 +15,23 @@ mutable struct Lasso2NormProx <: LassoRoot
     Z::Matrix # Starndardized Matrix
     l::Matrix # Zero mean label 
     
-    OptModel::ProximalGradient  # The package of ProximalGradient method stuff
+    proxOptim::ProximalGradient  # The package of ProximalGradient method stuff
     λ::Float64       # the regularization parameter. 
 
-    LassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
+    lassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
     # the feature while varying the lambda quantity. 
     λs::Union{Vector, Nothing} # the lambda values. 
 
     # Paramters for the iterator
-    Tol::Float64
-    λMin::Float64
+    tol::Float64
+    λmin::Float64
 
     function Lasso2NormProx(
             A::Matrix, 
             y::Array, 
             λ::Float64=0.0
         )
+        warn("This type has been deprecated due to performance issues. ")
         A = copy(A)
         m, _ = size(A)
         @assert size(y, 1) == m ""*
@@ -47,7 +48,7 @@ mutable struct Lasso2NormProx <: LassoRoot
         l = y .- u
         OptModel = BuildPG2NormLasso(Z, l, λ)
         this = new(A, y, μ, u, Z, l, OptModel, λ)
-        this.Tol = 1e-4
+        this.Tol = -1
         this.λMin = 1e-8
         return this
     end
@@ -59,7 +60,7 @@ function Changeλ!(this::Lasso2NormProx, λ::Float64)
         Change the Lasso regularizer of the current model 
     """
 
-    ChangeProximalGradientLassoλ!(this.OptModel, λ)
+    ChangeProximalGradientLassoλ!(this.proxOptim, λ)
     return 
 end
 
@@ -74,10 +75,10 @@ function SolveLasso(
     """
 
     if !(x0 === nothing)
-        x0 = reshape(x0, this.OptModel.solutionDim)
+        x0 = reshape(x0, this.proxOptim.solutionDim)
     end
 
-    return reshape(OptimizeProximalGradient(this.OptModel, x0), :)
+    return reshape(OptimizeProximalGradient(this.proxOptim, x0), :)
     
 end
 
