@@ -7,17 +7,12 @@
     λs field, and the LassoPath field of the instance. 
     
 """
-function GetLassoPath(this::LassoRoot, decay_by=2)
+function GetLassoPath(this::LassoRoot, decay_by=0.9)
     """
         Analyze the Lasso Problem by drawing a lasso path. It will start with 
         a parameter that will make all predictors zero and then solve it 
         iterative by chopping the regularization λ by half each iteration. 
 
-        **this**: 
-            An instance of the LassoSCOP
-        **tol**: 
-            If the infinity norm of vector of the change in the weights is 
-            less than this quantity, then it stops and return all the results. 
 
     """
     @assert decay_by != 1 "lambda decay value cannot be 1. "
@@ -43,12 +38,10 @@ function GetLassoPath(this::LassoRoot, decay_by=2)
     dx = Inf
     push!(Results, x)
     push!(λs, λ)
-    MaxItr = 100
     pb = Pm.ProgressThresh(this.Tol, "inf norm of δx: ")
-    while dx >= this.Tol && MaxItr >= 0
+    while dx >= this.Tol && λ >= this.λMin
         λ /= decay_by
         push!(λs, λ)
-        MaxItr -= 1
         Changeλ!(this, λ)
         x = SolveLasso(this, x0=x)
         push!(Results, value.(x))

@@ -14,7 +14,8 @@ PrintTitle("The Data is ready, we are ready for analyais now")
 
 function ShowResults(constructor::Function, fname::String)
     lassoIntance = constructor(A, b)
-    GetLassoPath(lassoIntance, 0.9)
+    lassoIntance.Tol = -1
+    GetLassoPath(lassoIntance, 0.99)
     VisualizeLassoPath(lassoIntance, fname=fname)
     predictorIndices, λ, ws = 
         CaptureImportantWeights(lassoIntance, 10, 1e-2)
