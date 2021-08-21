@@ -7,7 +7,7 @@
     λs field, and the LassoPath field of the instance. 
     
 """
-function GetLassoPath(this::LassoRoot)
+function GetLassoPath(this::LassoRoot, decay_by=2)
     """
         Analyze the Lasso Problem by drawing a lasso path. It will start with 
         a parameter that will make all predictors zero and then solve it 
@@ -20,6 +20,10 @@ function GetLassoPath(this::LassoRoot)
             less than this quantity, then it stops and return all the results. 
 
     """
+    @assert decay_by != 1 "lambda decay value cannot be 1. "
+    if decay_by < 1 
+        decay_by = 1/decay_by
+    end
 
     u = this.u
     A = this.Z
@@ -42,7 +46,7 @@ function GetLassoPath(this::LassoRoot)
     MaxItr = 100
     pb = Pm.ProgressThresh(this.Tol, "inf norm of δx: ")
     while dx >= this.Tol && MaxItr >= 0
-        λ /= 2
+        λ /= decay_by
         push!(λs, λ)
         MaxItr -= 1
         Changeλ!(this, λ)

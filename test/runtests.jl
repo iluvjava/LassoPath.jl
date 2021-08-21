@@ -110,7 +110,7 @@ function Test4()
     A[:, deg + 1:end] = 2B.^2 + B + 0.1.*randn(size(B))
 
     b = A*ones(2deg, 1)
-    instance = LassoProximal(A, b)
+    instance = Lasso2NormProx(A, b)
 
     results, λs = GetLassoPath(instance)
     display(results)

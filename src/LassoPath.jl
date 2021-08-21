@@ -11,9 +11,10 @@ module LassoPath
        # The order here matters
        include("utils.jl")
        include("lasso_root.jl")
-       include("model_build.jl")
+       include("model_make.jl")
        include("lasso_scop.jl")
-       include("lasso_proxi_gd.jl")
+       include("prox.jl")
+       include("lasso_prox.jl")
        include("lasso_methods.jl")
 
        export vanderMonde, 
@@ -22,7 +23,7 @@ module LassoPath
 
        export LassoRoot, 
               LassoSCOP,
-              LassoProximal,
+              Lasso2NormProx,
               GetLassoPath,
               VisualizeLassoPath, 
               CaptureImportantWeights

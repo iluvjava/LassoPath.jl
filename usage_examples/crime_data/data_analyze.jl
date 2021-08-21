@@ -14,7 +14,7 @@ PrintTitle("The Data is ready, we are ready for analyais now")
 
 function ShowResults(constructor::Function, fname::String)
     lassoIntance = constructor(A, b)
-    GetLassoPath(lassoIntance)
+    GetLassoPath(lassoIntance, 0.9)
     VisualizeLassoPath(lassoIntance, fname=fname)
     predictorIndices, λ, ws = 
         CaptureImportantWeights(lassoIntance, 10, 1e-2)
@@ -31,4 +31,4 @@ function ShowResults(constructor::Function, fname::String)
 end
 
 # @time ShowResults((x, y) -> LassoSCOP(x, y), "Lasso SCOP.png")
-@time ShowResults((x, y) -> LassoProximal(x, y), "lasso_proximal.png")
+@time ShowResults((x, y) -> Lasso2NormProx(x, y), "lasso_proximal.png")
