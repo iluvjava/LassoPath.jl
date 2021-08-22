@@ -6,15 +6,10 @@
     Get the lassopath for the instance made, the function will modify the 
     λs field, and the LassoPath field of the instance. 
     
+    
 """
 function GetLassoPath(this::LassoRoot, decay_by=0.9)
-    """
-        Analyze the Lasso Problem by drawing a lasso path. It will start with 
-        a parameter that will make all predictors zero and then solve it 
-        iterative by chopping the regularization λ by half each iteration. 
 
-
-    """
     @assert decay_by != 1 "lambda decay value cannot be 1. "
     if decay_by < 1 
         decay_by = 1/decay_by
@@ -100,19 +95,19 @@ end
     weights. 
         
     ---
-    `this::LassoRoot`: 
+    this::LassoRoot: 
         An instance of the Lasso Analyzer. 
     
-    `top_k::Union{Float64, Int64}`:
+    top_k::Union{Float64, Int64}:
         The number of non-zero weights you want, if it's a float between 0, 1, then 
         it's interpreted as the ratio of non-zero weights you want. 
     
-    `threshold::Float64=1e-4`
+    threshold::Float64=1e-4
         Set a threshold for the weights that you deem to be "important", only 
         weights larger than this threshold will be viiwed as "non-zero". 
 
     ---
-    `returns`: 
+    returns: 
         * indices of the important predictors
         * values of the regularization parameters
         * the actual weigths
@@ -122,7 +117,6 @@ function CaptureImportantWeights(
         top_k::Union{Float64, Int64} = 0.5, 
         threshold::Float64=1e-10
     )
-    
     @assert isdefined(this, :LassoPath) "Lasso Path not defined for this"*
     "Object yet. "
     @assert top_k >= 0 "this parameters, should be a positive number"
@@ -152,7 +146,7 @@ end
 """
 function CaptureMonotoneWeights(this::LassoRoot)
     # TODO: Implement his
-    
+
 end
 
 
@@ -161,14 +155,5 @@ function WeightCorrelations(this::LassoRoot, index::Int64)
 end
 
 
-function λSuchThatThisWeightIsZero(this::LassoRoot)
-    # TODO: implement this
 
-end
-
-
-function RankAllWeights(this::LassoRoot)
-    # TODO: Implement This    
-
-end
 

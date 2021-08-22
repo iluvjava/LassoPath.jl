@@ -18,20 +18,20 @@ mutable struct Lasso2NormProx <: LassoRoot
     proxOptim::ProximalGradient  # The package of ProximalGradient method stuff
     λ::Float64       # the regularization parameter. 
 
-    lassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
+    LassoPath::Union{Matrix, Nothing} # going along a fixed row is the fixing 
     # the feature while varying the lambda quantity. 
     λs::Union{Vector, Nothing} # the lambda values. 
 
     # Paramters for the iterator
-    tol::Float64
-    λmin::Float64
+    Tol::Float64
+    λMin::Float64
 
     function Lasso2NormProx(
             A::Matrix, 
             y::Array, 
             λ::Float64=0.0
         )
-        warn("This type has been deprecated due to performance issues. ")
+        Warn("This type has been deprecated due to performance issues. ")
         A = copy(A)
         m, _ = size(A)
         @assert size(y, 1) == m ""*
