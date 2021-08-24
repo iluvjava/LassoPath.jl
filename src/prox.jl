@@ -170,12 +170,11 @@ end
 function BuildPGHuberLasso(
     A::Matrix,
     B::Array,
-    a::Float64,
-    δ::Float64,
-    λ::Float64
+    δ::Float64=1,
+    λ::Float64=0
 )
     # TODO: implement this 
-
+    
 
 end
 
